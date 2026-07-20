@@ -1,0 +1,25 @@
+/* ── Leaflet container reset ───────────────────────────── */
+.leaflet-container { font-family: 'Inter', system-ui, sans-serif; background: #f1f5f9; }
+
+/* ── Custom price marker ────────────────────────────────── */
+.staynest-marker {
+  background: #ffffff; border: 2px solid #e11d48; border-radius: 20px;
+  padding: 4px 10px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
+  white-space: nowrap;
+}
+.staynest-marker span { font-size: 12px; font-weight: 700; color: #111827; line-height: 1; }
+.staynest-marker:hover { transform: scale(1.1); box-shadow: 0 4px 16px rgba(225, 29, 72, 0.35); z-index: 999 !important; }
+.staynest-marker--active { background: #e11d48; border-color: #be123c; }
+.staynest-marker--active span { color: #ffffff; }
+
+/* ── Custom popup ───────────────────────────────────────── */
+.staynest-popup .leaflet-popup-content-wrapper { border-radius: 16px !important; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important; padding: 0 !important; overflow: hidden; border: 1px solid #e5e7eb; }
+.staynest-popup .leaflet-popup-content { margin: 0 !important; min-width: 180px; }
+.staynest-popup .leaflet-popup-tip-container { display: none; }
+
+/* ── Dark mode support ─────────────── */
+.dark .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9); }
+.dark .staynest-marker { background: #1e293b; border-color: #f43f5e; }
+.dark .staynest-marker span { color: #f1f5f9; }
+.dark .staynest-popup .leaflet-popup-content-wrapper { background: #1e293b !important; border-color: #334155 !important; }
