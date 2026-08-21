@@ -56,7 +56,7 @@ export default function ChatWidget() {
           'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
         },
         body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
+          model: 'openai/gpt-oss-120b',
           max_tokens: 1024,
           temperature: 0.7,
           messages: [
@@ -121,7 +121,7 @@ export default function ChatWidget() {
                   <p className="font-semibold text-white text-sm">StayNest Assistant</p>
                   <p className="text-white/70 text-xs flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-300 inline-block" />
-                    Powered by Llama AI
+                    Powered by Qwen AI
                   </p>
                 </div>
               </div>

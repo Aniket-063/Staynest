@@ -80,7 +80,9 @@ export default function HomePage() {
   const { listings: apiListings, loading, error } = useListings(filters)
   
   // Use mock data when API isn't connected yet
-  const rawListings = apiListings?.listings || []
+ const rawListings = (apiListings?.listings && apiListings.listings.length > 0) 
+    ? apiListings.listings 
+    : MOCK_LISTINGS
   
   // Client-side filter on mock data
   const listings = rawListings.filter(l => {
