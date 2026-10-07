@@ -80,6 +80,7 @@ export default function CheckoutPage() {
       checkOut,
       guests,
       totalPrice: breakdown?.total,
+      totalInr:   breakdown?.totalInr,
     })
     setStep(3)
   }

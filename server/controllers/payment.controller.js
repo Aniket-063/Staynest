@@ -36,12 +36,14 @@ async function createOrder(req, res) {
   })
   if (conflict) return res.status(409).json({ message: 'These dates are already booked' })
 
+  const USD_TO_INR  = Number(process.env.USD_TO_INR) || 90
   const nights      = calcNights(checkIn, checkOut)
   const subtotal    = listing.price * nights
   const cleaningFee = 45
   const serviceFee  = Math.round(subtotal * 0.12)
-  const totalPrice  = subtotal + cleaningFee + serviceFee
-  const amountPaise = Math.round(totalPrice * 100) // Razorpay paise mein leta hai
+  const totalPrice  = subtotal + cleaningFee + serviceFee   // USD (database mein yahi save hoga)
+  const totalInr    = Math.round(totalPrice * USD_TO_INR)   // rupees mein
+  const amountPaise = totalInr * 100       
 
   // Razorpay order create karo
   const order = await razorpay.orders.create({
@@ -68,7 +70,7 @@ async function createOrder(req, res) {
     currency:  order.currency,
     keyId:     process.env.RAZORPAY_KEY_ID,
     bookingId: booking._id,
-    breakdown: { nights, pricePerNight: listing.price, subtotal, cleaningFee, serviceFee, total: totalPrice },
+    breakdown: { nights, pricePerNight: listing.price, subtotal, cleaningFee, serviceFee, total: totalPrice, totalInr, rate: USD_TO_INR },
   })
 }
 

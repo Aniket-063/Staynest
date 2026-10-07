@@ -68,10 +68,20 @@ export default function BookingSummary({ listing, checkIn, checkOut, guests, bre
             <span>Service fee</span>
             <span>${breakdown.serviceFee}</span>
           </div>
+          
           <div className="flex justify-between font-bold text-gray-900 dark:text-white pt-3 border-t border-gray-100 dark:border-slate-700 text-base">
             <span>Total (USD)</span>
             <span>${breakdown.total}</span>
           </div>
+
+          {breakdown.totalInr && (
+            <div className="flex justify-between text-sm text-gray-500 dark:text-slate-400 pt-1">
+              <span>You will pay (1 USD = ₹{breakdown.rate})</span>
+              <span className="font-semibold text-gray-900 dark:text-white">
+                ₹{breakdown.totalInr.toLocaleString('en-IN')}
+              </span>
+            </div>
+          )}
         </div>
       )}
     </div>

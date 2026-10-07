@@ -57,7 +57,9 @@ export default function PaymentSuccess({ booking, listing, breakdown }) {
               </div>
               <div>
                 <p className="text-xs text-gray-400 dark:text-slate-500 font-medium uppercase tracking-wide mb-0.5">Total Paid</p>
-                <p className="font-semibold text-green-600 dark:text-green-400">${booking.totalPrice}</p>
+                <p className="font-semibold text-green-600 dark:text-green-400">
+                {booking.totalInr ? `₹${booking.totalInr.toLocaleString('en-IN')}` : `$${booking.totalPrice}`}
+                </p>
               </div>
             </div>
           )}
