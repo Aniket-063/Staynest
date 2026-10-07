@@ -3,6 +3,7 @@ require('express-async-errors')
 const express   = require('express')
 const cors      = require('cors')
 const connectDB = require('./config/db')
+const wishlistRoutes = require('./routes/wishlist.routes')
 
 const authRoutes    = require('./routes/auth.routes')
 const listingRoutes = require('./routes/listing.routes')
@@ -33,6 +34,7 @@ app.use('/api/auth',     authRoutes)
 app.use('/api/listings', listingRoutes)
 app.use('/api/bookings', bookingRoutes)
 app.use('/api/payments', paymentRoutes) // Phase 5
+app.use('/api/wishlist', wishlistRoutes)
 
 app.use((_req, res) => res.status(404).json({ message: 'Route not found' }))
 app.use(errorHandler)

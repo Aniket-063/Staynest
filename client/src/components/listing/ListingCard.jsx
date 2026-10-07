@@ -1,9 +1,14 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useWishlist } from '../../context/WishlistContext'
+import { useAuth } from '../../context/AuthContext'
 
 export default function ListingCard({ listing }) {
   const [imgIdx, setImgIdx] = useState(0)
-  const [wishlisted, setWishlisted] = useState(false)
+  const { user } = useAuth()
+  const { isWishlisted, toggle } = useWishlist()
+  const navigate = useNavigate()
+  const wishlisted = isWishlisted(listing._id)
   
   const images = listing.images?.length ? listing.images : [
     'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&q=80'
@@ -31,7 +36,12 @@ export default function ListingCard({ listing }) {
         />
         {/* Wishlist */}
         <button
-          onClick={e => { e.preventDefault(); setWishlisted(w => !w) }}
+          onClick={e => {
+          e.preventDefault()
+          if (!user) return navigate('/login')
+          toggle(listing._id)
+          }}
+          
           className="absolute top-3 right-3 p-2 rounded-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm hover:scale-110 transition-transform shadow-sm"
           aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
         >
