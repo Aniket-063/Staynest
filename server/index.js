@@ -5,6 +5,7 @@ const cors      = require('cors')
 const connectDB = require('./config/db')
 const wishlistRoutes = require('./routes/wishlist.routes')
 
+const chatRoutes = require('./routes/chat.routes')
 const authRoutes    = require('./routes/auth.routes')
 const listingRoutes = require('./routes/listing.routes')
 const bookingRoutes = require('./routes/booking.routes')
@@ -20,6 +21,7 @@ app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173', creden
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }), (req, _res, next) => { req.rawBody = req.body; next() })
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use('/api/chat', chatRoutes)
 
 if (process.env.NODE_ENV !== 'production') {
   app.use((req, _res, next) => {

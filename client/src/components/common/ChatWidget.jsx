@@ -1,20 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
+import api from '../../services/api'
 
-const SYSTEM_PROMPT = `You are a helpful travel assistant for StayNest, an Airbnb-style property booking platform.
 
-You help users with:
-- Travel destination recommendations
-- Best time to visit places
-- Property/listing suggestions based on their needs
-- Local tips and travel advice
-- Answering questions about bookings, check-in/check-out policies
-- Budget planning for trips
-
-StayNest has listings in categories: Beach, Mountain, City, Countryside, Luxury.
-Prices range from $119 to $950 per night.
-
-Keep responses concise, friendly and helpful. Use emojis occasionally to make it engaging.
-Always respond in the same language the user writes in (English or Hindi/Hinglish).`
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen]     = useState(false)
@@ -48,40 +35,13 @@ export default function ChatWidget() {
     setLoading(true)
     setError('')
 
-    try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: 'openai/gpt-oss-120b',
-          max_tokens: 1024,
-          temperature: 0.7,
-          messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
-            ...updatedMessages.map(m => ({
-              role: m.role,
-              content: m.content
-            }))
-          ]
-        })
+      try {
+      const { data } = await api.post('/chat', {
+        messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),
       })
-
-      if (!response.ok) {
-        const errData = await response.json()
-        throw new Error(errData.error?.message || 'API request failed')
-      }
-
-      const data = await response.json()
-      const text = data.choices?.[0]?.message?.content
-
-      if (!text) throw new Error('No response received')
-
-      setMessages(prev => [...prev, { role: 'assistant', content: text }])
+      setMessages(prev => [...prev, { role: 'assistant', content: data.reply }])
     } catch (err) {
-      console.error('Groq error:', err)
+      console.error('Chat error:', err)
       setError('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
@@ -121,7 +81,7 @@ export default function ChatWidget() {
                   <p className="font-semibold text-white text-sm">StayNest Assistant</p>
                   <p className="text-white/70 text-xs flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-300 inline-block" />
-                    Powered by Qwen AI
+                    Powered by Gemini AI
                   </p>
                 </div>
               </div>
