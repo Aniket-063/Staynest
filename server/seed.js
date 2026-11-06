@@ -20,6 +20,7 @@ async function seedDatabase() {
         name: 'Super Host',
         email: 'host@staynest.com',
         password: 'password123', // Real app mein password hash hota hai, par seed ke liye theek hai
+        isVerified: true,
       })
       console.log('👤 Created dummy host')
     }

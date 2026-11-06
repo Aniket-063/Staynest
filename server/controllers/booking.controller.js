@@ -29,7 +29,11 @@ async function createBooking(req, res) {
 }
 
 async function getMyBookings(req, res) {
-  const bookings = await Booking.find({ guest: req.user.id }).populate('listing', 'title images location price host').sort({ createdAt: -1 }).lean()
+  const cutoff = new Date(Date.now() - 15 * 60 * 1000)
+  const bookings = await Booking.find({
+    guest: req.user.id,
+    $or: [{ status: { $ne: 'pending' } }, { createdAt: { $gte: cutoff } }],
+  }).populate('listing', 'title images location price host').sort({ createdAt: -1 }).lean()
   res.json(bookings)
 }
 

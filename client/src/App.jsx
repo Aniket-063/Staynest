@@ -8,6 +8,7 @@ import RegisterPage from './pages/RegisterPage'
 import MyBookingsPage from './pages/MyBookingsPage'
 import NotFoundPage from './pages/NotFoundPage'
 import WishlistPage from './pages/WishlistPage'
+import VerifyEmailPage from './pages/VerifyEmailPage'
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="checkout/:id"   element={<CheckoutPage />} />
         <Route path="login"          element={<LoginPage />} />
         <Route path="register"       element={<RegisterPage />} />
+        <Route path="verify-email"   element={<VerifyEmailPage />} />
         <Route path="my-bookings"    element={<MyBookingsPage />} />
         <Route path="wishlist" element={<WishlistPage />} />
         <Route path="*"              element={<NotFoundPage />} />

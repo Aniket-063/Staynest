@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/AuthContext'
 import api from '../../services/api'
 
-
-
 export default function ChatWidget() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
   const [isOpen, setIsOpen]     = useState(false)
   const [messages, setMessages] = useState([
     {
@@ -22,10 +24,14 @@ export default function ChatWidget() {
   }, [messages])
 
   useEffect(() => {
-    if (isOpen) setTimeout(() => inputRef.current?.focus(), 100)
-  }, [isOpen])
+    if (isOpen && user) setTimeout(() => inputRef.current?.focus(), 100)
+  }, [isOpen, user])
 
   const sendMessage = async () => {
+    if (!user) {
+      setError('Please log in to chat with the AI assistant.')
+      return
+    }
     if (!input.trim() || loading) return
 
     const userMessage = { role: 'user', content: input.trim() }
@@ -35,14 +41,18 @@ export default function ChatWidget() {
     setLoading(true)
     setError('')
 
-      try {
+    try {
       const { data } = await api.post('/chat', {
         messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),
       })
       setMessages(prev => [...prev, { role: 'assistant', content: data.reply }])
     } catch (err) {
       console.error('Chat error:', err)
-      setError('Something went wrong. Please try again.')
+      if (err.response?.status === 401) {
+        setError('Please log in to continue chatting.')
+      } else {
+        setError('Something went wrong. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -86,13 +96,15 @@ export default function ChatWidget() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <button
-                  onClick={clearChat}
-                  className="text-white/70 hover:text-white transition-colors"
-                  title="Clear chat"
-                >
-                  🗑️
-                </button>
+                {user && (
+                  <button
+                    onClick={clearChat}
+                    className="text-white/70 hover:text-white transition-colors"
+                    title="Clear chat"
+                  >
+                    🗑️
+                  </button>
+                )}
                 <button
                   onClick={() => setIsOpen(false)}
                   className="text-white/70 hover:text-white transition-colors text-lg leading-none"
@@ -102,105 +114,141 @@ export default function ChatWidget() {
               </div>
             </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-              {messages.map((msg, i) => (
-                <div
-                  key={i}
-                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  {msg.role === 'assistant' && (
-                    <div className="w-7 h-7 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center text-sm shrink-0 mr-2 mt-0.5">
-                      🏡
+            {!user ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center bg-gray-50/50 dark:bg-slate-800/50">
+                <div className="w-16 h-16 rounded-2xl bg-brand-50 dark:bg-brand-900/30 flex items-center justify-center text-3xl mb-4 border border-brand-100 dark:border-brand-800/40 shadow-sm">
+                  🔒
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                  Login to Use AI Assistant
+                </h3>
+                <p className="text-sm text-gray-500 dark:text-slate-400 mb-6 leading-relaxed max-w-[280px]">
+                  Please log in or create an account to chat with our travel assistant, get recommendations, and plan your trips.
+                </p>
+                <div className="flex flex-col w-full gap-2.5 max-w-[260px]">
+                  <button
+                    onClick={() => {
+                      setIsOpen(false)
+                      navigate('/login')
+                    }}
+                    className="w-full py-2.5 px-4 bg-brand-500 hover:bg-brand-600 text-white font-medium rounded-xl text-sm transition-colors shadow-md shadow-brand-500/20"
+                  >
+                    Log In
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsOpen(false)
+                      navigate('/register')
+                    }}
+                    className="w-full py-2.5 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-800 dark:text-slate-200 font-medium rounded-xl text-sm transition-colors"
+                  >
+                    Create an Account
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+                  {messages.map((msg, i) => (
+                    <div
+                      key={i}
+                      className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      {msg.role === 'assistant' && (
+                        <div className="w-7 h-7 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center text-sm shrink-0 mr-2 mt-0.5">
+                          🏡
+                        </div>
+                      )}
+                      <div
+                        className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                          msg.role === 'user'
+                            ? 'bg-brand-500 text-white rounded-tr-sm'
+                            : 'bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-slate-100 rounded-tl-sm'
+                        }`}
+                      >
+                        {msg.content}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Loading dots */}
+                  {loading && (
+                    <div className="flex justify-start">
+                      <div className="w-7 h-7 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center text-sm shrink-0 mr-2 mt-0.5">
+                        🏡
+                      </div>
+                      <div className="bg-gray-100 dark:bg-slate-700 px-4 py-3 rounded-2xl rounded-tl-sm">
+                        <div className="flex gap-1 items-center">
+                          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
+                      </div>
                     </div>
                   )}
-                  <div
-                    className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
-                      msg.role === 'user'
-                        ? 'bg-brand-500 text-white rounded-tr-sm'
-                        : 'bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-slate-100 rounded-tl-sm'
-                    }`}
-                  >
-                    {msg.content}
-                  </div>
-                </div>
-              ))}
 
-              {/* Loading dots */}
-              {loading && (
-                <div className="flex justify-start">
-                  <div className="w-7 h-7 rounded-full bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center text-sm shrink-0 mr-2 mt-0.5">
-                    🏡
-                  </div>
-                  <div className="bg-gray-100 dark:bg-slate-700 px-4 py-3 rounded-2xl rounded-tl-sm">
-                    <div className="flex gap-1 items-center">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  {error && (
+                    <div className="text-xs text-red-500 text-center bg-red-50 dark:bg-red-900/20 rounded-xl px-3 py-2">
+                      {error}
                     </div>
+                  )}
+
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {/* Quick suggestions */}
+                {messages.length === 1 && (
+                  <div className="px-4 pb-3 flex gap-2 flex-wrap shrink-0">
+                    {[
+                      '🏖️ Beach destinations',
+                      '💰 Budget stays under $150',
+                      '🌍 Best places to visit',
+                      '🏔️ Mountain retreats',
+                    ].map(suggestion => (
+                      <button
+                        key={suggestion}
+                        onClick={() => {
+                          setInput(suggestion.slice(3))
+                          inputRef.current?.focus()
+                        }}
+                        className="text-xs bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 px-3 py-1.5 rounded-full hover:bg-brand-50 dark:hover:bg-brand-900/30 hover:text-brand-600 transition-colors"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
                   </div>
+                )}
+
+                {/* Input */}
+                <div className="px-4 pb-4 shrink-0">
+                  <div className="flex gap-2 bg-gray-50 dark:bg-slate-700 rounded-2xl px-4 py-2 border border-gray-200 dark:border-slate-600 focus-within:border-brand-400 transition-colors">
+                    <textarea
+                      ref={inputRef}
+                      value={input}
+                      onChange={e => setInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Ask me anything about travel..."
+                      rows={1}
+                      className="flex-1 bg-transparent text-sm text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none resize-none"
+                      style={{ maxHeight: '80px' }}
+                    />
+                    <button
+                      onClick={sendMessage}
+                      disabled={!input.trim() || loading}
+                      className="w-8 h-8 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors shrink-0 self-end"
+                    >
+                      <svg className="w-4 h-4 text-white rotate-90" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-400 dark:text-slate-500 text-center mt-2">
+                    Press Enter to send · Shift+Enter for new line
+                  </p>
                 </div>
-              )}
-
-              {error && (
-                <div className="text-xs text-red-500 text-center bg-red-50 dark:bg-red-900/20 rounded-xl px-3 py-2">
-                  {error}
-                </div>
-              )}
-
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Quick suggestions */}
-            {messages.length === 1 && (
-              <div className="px-4 pb-3 flex gap-2 flex-wrap shrink-0">
-                {[
-                  '🏖️ Beach destinations',
-                  '💰 Budget stays under $150',
-                  '🌍 Best places to visit',
-                  '🏔️ Mountain retreats',
-                ].map(suggestion => (
-                  <button
-                    key={suggestion}
-                    onClick={() => {
-                      setInput(suggestion.slice(3))
-                      inputRef.current?.focus()
-                    }}
-                    className="text-xs bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 px-3 py-1.5 rounded-full hover:bg-brand-50 dark:hover:bg-brand-900/30 hover:text-brand-600 transition-colors"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
+              </>
             )}
-
-            {/* Input */}
-            <div className="px-4 pb-4 shrink-0">
-              <div className="flex gap-2 bg-gray-50 dark:bg-slate-700 rounded-2xl px-4 py-2 border border-gray-200 dark:border-slate-600 focus-within:border-brand-400 transition-colors">
-                <textarea
-                  ref={inputRef}
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Ask me anything about travel..."
-                  rows={1}
-                  className="flex-1 bg-transparent text-sm text-gray-900 dark:text-slate-100 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none resize-none"
-                  style={{ maxHeight: '80px' }}
-                />
-                <button
-                  onClick={sendMessage}
-                  disabled={!input.trim() || loading}
-                  className="w-8 h-8 rounded-xl bg-brand-500 hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors shrink-0 self-end"
-                >
-                  <svg className="w-4 h-4 text-white rotate-90" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-                  </svg>
-                </button>
-              </div>
-              <p className="text-xs text-gray-400 dark:text-slate-500 text-center mt-2">
-                Press Enter to send · Shift+Enter for new line
-              </p>
-            </div>
           </div>
         </div>
       )}

@@ -1,6 +1,14 @@
 const Listing = require('../models/Listing.model')
 const Review  = require('../models/Review.model')
 const Booking = require('../models/Booking.model')
+const { findConflict } = require('../utils/availability')
+
+async function getAvailability(req, res) {
+  const { checkIn, checkOut } = req.query
+  if (!checkIn || !checkOut) return res.status(400).json({ message: 'checkIn and checkOut are required' })
+  const conflict = await findConflict(req.params.id, checkIn, checkOut)
+  res.json({ available: !conflict })
+}
 
 // GET /api/listings
 async function getListings(req, res) {
@@ -77,20 +85,6 @@ async function createReview(req, res) {
   res.status(201).json(populated)
 }
 
-// GET /api/listings/:id/availability
-async function getAvailability(req, res) {
-  const { checkIn, checkOut } = req.query
-  if (!checkIn || !checkOut) return res.status(400).json({ message: 'checkIn and checkOut are required' })
-  const conflict = await Booking.findOne({
-    listing: req.params.id,
-    status: { $in: ['pending', 'confirmed'] },
-    $or: [
-      { checkIn:  { $lt: new Date(checkOut), $gte: new Date(checkIn) } },
-      { checkOut: { $gt: new Date(checkIn),  $lte: new Date(checkOut) } },
-      { checkIn:  { $lte: new Date(checkIn) }, checkOut: { $gte: new Date(checkOut) } },
-    ],
-  })
-  res.json({ available: !conflict })
-}
+
 
 module.exports = { getListings, getListing, createListing, updateListing, deleteListing, getReviews, createReview, getAvailability }

@@ -29,8 +29,15 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('staynest-token')
   }, [])
 
+  const setAuth = useCallback((userData, tokenData) => {
+    setUser(userData)
+    setToken(tokenData)
+    localStorage.setItem('staynest-user', JSON.stringify(userData))
+    localStorage.setItem('staynest-token', tokenData)
+  }, [])
+
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, login, logout, setAuth }}>
       {children}
     </AuthContext.Provider>
   )
